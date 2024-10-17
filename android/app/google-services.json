@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "78687403248",
+    "project_id": "aaravblog-c9b99",
+    "storage_bucket": "aaravblog-c9b99.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:78687403248:android:a70f39ad1ab310dc071635",
+        "android_client_info": {
+          "package_name": "com.prashant.aaravblog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV1ndnpoMg7KWwQxUsDyZ4I1MvVMPW2Js"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
