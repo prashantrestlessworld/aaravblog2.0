@@ -192,13 +192,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 selectedItemColor: Colors.deepPurple,
                 onTap: _onItemTapped,
               ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _toggleTheme,
-          tooltip: 'Toggle Theme',
-          child: Icon(isDarkTheme ? Icons.light_mode : Icons.dark_mode),
-          backgroundColor: Colors.deepPurpleAccent,
+
         ),
-      ),
+      
     );
   }
 }

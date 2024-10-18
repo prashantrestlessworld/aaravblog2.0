@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 
@@ -49,8 +50,7 @@ class LoginScreen extends StatelessWidget {
                                 );
                               } else {
                                 // Navigate to posts page on success
-                                Navigator.pushReplacementNamed(
-                                    context, '/home');
+                                context.go('/home');
                               }
                             },
                       child: Text('Log In'),
@@ -58,7 +58,7 @@ class LoginScreen extends StatelessWidget {
                     TextButton(
                       onPressed: () {
                         // Navigate to the signup screen
-                        Navigator.pushNamed(context, '/signup');
+                        context.push('/signup');
                       },
                       child: Text('Don’t have an account? Sign up'),
                     ),

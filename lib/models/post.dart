@@ -1,3 +1,4 @@
+// models/post.dart
 class Post {
   final String key;
   final String title;

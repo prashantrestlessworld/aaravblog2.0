@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../controllers/auth_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -52,15 +53,14 @@ class SignupScreen extends StatelessWidget {
                                 );
                               } else {
                                 // Navigate to login page on success
-                                Navigator.pushReplacementNamed(
-                                    context, '/login');
+                                context.go('/login');
                               }
                             },
                       child: Text('Sign Up'),
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login');
+                        context.push('/login');
                       },
                       child: Text('Already have an account? Log in'),
                     ),

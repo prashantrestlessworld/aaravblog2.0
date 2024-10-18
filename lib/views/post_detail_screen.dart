@@ -26,7 +26,7 @@ class PostDetailScreen extends StatelessWidget {
                   image: NetworkImage(
                     post.thumbnail.isNotEmpty
                         ? post.thumbnail
-                        : 'https://via.placeholder.com/200',
+                        : 'https://via.placeholder.com/200', // Placeholder if thumbnail is empty
                   ),
                   fit: BoxFit.cover,
                 ),
@@ -52,7 +52,7 @@ class PostDetailScreen extends StatelessWidget {
                   post.content, // This will render the HTML content
                   textStyle: TextStyle(
                       fontSize: 16), // Set the font size for the content
-                  // Add any additional options like custom styling
+                  // Add any additional options like custom styling if needed
                 ),
               ),
             ),

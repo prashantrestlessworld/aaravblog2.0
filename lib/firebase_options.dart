@@ -50,19 +50,19 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAS9_vHPpHhz_i_NkBuzNWCl2FWAxItgqc',
-    appId: '1:78687403248:web:e4f2f7c4eacca0c1071635',
-    messagingSenderId: '78687403248',
-    projectId: 'aaravblog-c9b99',
-    authDomain: 'aaravblog-c9b99.firebaseapp.com',
-    storageBucket: 'aaravblog-c9b99.appspot.com',
+    apiKey: 'AIzaSyBp8iXheHJzhxIaZvivta3zqpMHFwVO7JI',
+    appId: '1:511694327181:web:ed269b5774a6d11e1501c4',
+    messagingSenderId: '511694327181',
+    projectId: 'aaravblog-ea445',
+    authDomain: 'aaravblog-ea445.firebaseapp.com',
+    storageBucket: 'aaravblog-ea445.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBV1ndnpoMg7KWwQxUsDyZ4I1MvVMPW2Js',
-    appId: '1:78687403248:android:a70f39ad1ab310dc071635',
-    messagingSenderId: '78687403248',
-    projectId: 'aaravblog-c9b99',
-    storageBucket: 'aaravblog-c9b99.appspot.com',
+    apiKey: 'AIzaSyDYU4KwC8gOlNX7ODDQmpuHT8YcumYer5o',
+    appId: '1:511694327181:android:07f6f3505abd00dd1501c4',
+    messagingSenderId: '511694327181',
+    projectId: 'aaravblog-ea445',
+    storageBucket: 'aaravblog-ea445.appspot.com',
   );
 }

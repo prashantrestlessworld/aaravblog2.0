@@ -1,8 +1,12 @@
+// screens/create_post_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_rte/flutter_rte.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:typed_data';
 import '../controllers/post_controller.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -13,27 +17,60 @@ class CreatePostScreen extends StatefulWidget {
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  String? thumbnailUrl; // To store the URL of the selected image
-  final HtmlEditorController contentController = HtmlEditorController();
+  String? thumbnailUrl;
+
+  // Instantiate the QuillController
+  quill.QuillController contentController = quill.QuillController.basic();
+  bool _isLoading = false;
+
+  // File for image picker
+  File? _pickedImage;
+  Uint8List? _webImage;
 
   Future<void> chooseImage() async {
     final picker = ImagePicker();
     try {
-      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        File imageFile = File(pickedFile.path);
-        final postController =
-            Provider.of<PostController>(context, listen: false);
-        try {
-          thumbnailUrl = await postController
-              .uploadImage(imageFile); // Upload image and get URL
-          setState(() {}); // Refresh UI
-        } catch (e) {
-          _showMessage(context, 'Failed to upload image: ${e.toString()}',
-              isSuccess: false);
+      if (kIsWeb) {
+        // Web specific image picking
+        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+        if (pickedFile != null) {
+          final bytes = await pickedFile.readAsBytes();
+          setState(() {
+            _webImage = bytes;
+          });
+          final postController =
+              Provider.of<PostController>(context, listen: false);
+          try {
+            thumbnailUrl = await postController.uploadImageWeb(bytes);
+            setState(() {});
+          } catch (e) {
+            _showMessage(
+                context, 'Failed to upload image on web: ${e.toString()}',
+                isSuccess: false);
+          }
+        } else {
+          _showMessage(context, 'No image selected on web.', isSuccess: false);
         }
       } else {
-        _showMessage(context, 'No image selected.', isSuccess: false);
+        // Mobile/desktop specific image picking
+        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+        if (pickedFile != null) {
+          File imageFile = File(pickedFile.path);
+          setState(() {
+            _pickedImage = imageFile;
+          });
+          final postController =
+              Provider.of<PostController>(context, listen: false);
+          try {
+            thumbnailUrl = await postController.uploadImage(imageFile);
+            setState(() {});
+          } catch (e) {
+            _showMessage(context, 'Failed to upload image: ${e.toString()}',
+                isSuccess: false);
+          }
+        } else {
+          _showMessage(context, 'No image selected.', isSuccess: false);
+        }
       }
     } catch (e) {
       _showMessage(context, 'Error picking image: ${e.toString()}',
@@ -43,8 +80,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final postController = Provider.of<PostController>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Post'),
@@ -53,14 +88,19 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            // Title input field
             TextField(
               controller: titleController,
               decoration: InputDecoration(labelText: 'Title'),
             ),
+
+            // Description input field
             TextField(
               controller: descriptionController,
               decoration: InputDecoration(labelText: 'Description'),
             ),
+
+            // Image picker section
             GestureDetector(
               onTap: chooseImage,
               child: Container(
@@ -71,52 +111,34 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 child: Column(
                   children: [
                     if (thumbnailUrl != null)
-                      Image.network(thumbnailUrl!,
-                          height: 100) // Display selected image
+                      kIsWeb
+                          ? Image.memory(_webImage!, height: 100)
+                          : Image.file(_pickedImage!, height: 100)
                     else
                       Text('Choose Thumbnail Image'),
                   ],
                 ),
               ),
             ),
+
+            // Quill editor and toolbar
+            QuillSimpleToolbar(
+              controller: contentController,
+              configurations: const quill.QuillSimpleToolbarConfigurations(),
+            ),
             Expanded(
-              child: HtmlEditor(
+              child: quill.QuillEditor.basic(
                 controller: contentController,
-                height: 300,
-                hint: "Type your content here...",
+                configurations: const quill.QuillEditorConfigurations(),
               ),
             ),
+
+            // Create Post Button
             ElevatedButton(
-              onPressed: () async {
-                // Show loading indicator
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) {
-                    return Center(child: CircularProgressIndicator());
-                  },
-                );
-
-                final title = titleController.text;
-                final description = descriptionController.text;
-                final content = await contentController.getText();
-                final slug = title.toLowerCase().replaceAll(' ', '-');
-
-                try {
-                  await postController.createPost(
-                      title, description, thumbnailUrl ?? '', content, slug);
-                  Navigator.of(context).pop(); // Close loading dialog
-                  Navigator.of(context).pop(); // Close the create post screen
-                  _showMessage(context, 'Post created successfully!',
-                      isSuccess: true);
-                } catch (e) {
-                  Navigator.of(context).pop(); // Close loading dialog
-                  _showMessage(
-                      context, 'Failed to create post: ${e.toString()}',
-                      isSuccess: false);
-                }
-              },
-              child: Text('Create Post'),
+              onPressed: _isLoading ? null : _createPost,
+              child: _isLoading
+                  ? CircularProgressIndicator()
+                  : Text('Create Post'),
             ),
           ],
         ),
@@ -124,12 +146,56 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
+  Future<void> _createPost() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final title = titleController.text;
+    final description = descriptionController.text;
+    final content = contentController.document
+        .toPlainText(); // Get plain text content from Quill editor
+    final slug = title
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), '-'); // Generate slug from title
+
+    try {
+      final postController =
+          Provider.of<PostController>(context, listen: false);
+      await postController.createPost(
+        title,
+        description,
+        thumbnailUrl ?? '',
+        content,
+        slug,
+      );
+
+      Navigator.of(context).pop();
+      _showMessage(context, 'Post created successfully!', isSuccess: true);
+    } catch (e) {
+      _showMessage(context, 'Failed to create post: ${e.toString()}',
+          isSuccess: false);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   void _showMessage(BuildContext context, String message,
-      {bool isSuccess = true}) {
-    final snackBar = SnackBar(
-      content: Text(message),
-      backgroundColor: isSuccess ? Colors.green : Colors.red,
+      {bool isSuccess = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isSuccess ? Colors.green : Colors.red,
+      ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the QuillController to free up resources
+    contentController.dispose();
+    super.dispose();
   }
 }
